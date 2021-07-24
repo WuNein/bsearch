@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>hello-wasm example</title>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <!-- <script src="https://cdn.jsdelivr.net/npm/lunr@2.3.9/lunr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lunr-languages@1.8.0/lunr.stemmer.support.js"></script>
+  <script src="./lunr.zh 2.js"></script> -->
+</head>
+
+<body>
+  <div style="padding: 50px;">
+  <div class="input-group mb-3">
+    <span class="input-group-text" id="basic-addon1">输入分词</span>
+    <input type="text" id="WillSplit" class="form-control" placeholder="句子" aria-label="Username"
+      aria-describedby="basic-addon1">
+  </div>
+  <p id="showSplit"></p>
+  <div class="input-group mb-3">
+    <span class="input-group-text" id="basic-addon1">输入分词——词性</span>
+    <input type="text" id="WillSplit2" class="form-control" placeholder="句子" aria-label="Username"
+      aria-describedby="basic-addon1">
+  </div>
+  <p id="showSplit2"></p>
+  <div class="card">
+    <div class="card-header">
+      搜索🔍
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">添加文档</h5>
+      
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">title</span>
+        <input type="text" id="ctitle" class="form-control" placeholder="标题" aria-label="Username"
+          aria-describedby="basic-addon1">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">context</span>
+        <input type="text" id="ctext" class="form-control" placeholder="正文" aria-label="Username"
+          aria-describedby="basic-addon1">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">category</span>
+        <input type="text" id="ccategory" class="form-control" placeholder="类别" aria-label="Username"
+          aria-describedby="basic-addon1">
+      </div>
+      <button id="AddDoc" class="btn btn-primary">添加</button>
+      <p id="showDocumentCount"></p>
+
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">搜索文档</h5>
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1">关键词</span>
+        <input type="text" id="cword" class="form-control" placeholder="关键词" aria-label="Username"
+          aria-describedby="basic-addon1">
+      </div>
+      <button id="SearchButton" class="btn btn-primary">搜索</button>
+      <p id="showSearch"></p>
+    </div>
+  </div>
+  </div>
+  <!-- <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/minisearch@3.0.2/dist/umd/index.min.js"></script>
+
+  <script type="module">
+    import init, { cut, cut_for_tag } from './rustJieba.js';
+    // import {require} from './require.js';
+
+
+    // console.log(init)
+    async function main() {
+      console.time("answer time");
+      await init()
+      console.timeLog("answer time");
+      let res = cut("二次元的报表")
+      console.log(JSON.parse(res))
+      console.timeLog("answer time");
+      res = cut("报表信息")
+      console.log(JSON.parse(res))
+      console.timeLog("answer time");
+      res = cut_for_tag("比较多的信息")
+      console.log(JSON.parse(res))
+      console.timeLog("answer time");
+    }
+    let stopWords = new Set(["的", "一", "不", "在", "人", "有", "是", "为", "以", "于", "上", "他", "而", "后", "之", "来", "及", "了", "因", "下", "可", "到", "由", "这", "与", "也", "此", "但", "并", "个", "其", "已", "无", "小", "我", "们", "起", "最", "再", "今", "去", "好", "只", "又", "或", "很", "亦", "某", "把", "那", "你", "乃", "它", "吧", "被", "比", "别", "趁", "当", "从", "到", "得", "打", "凡", "儿", "尔", "该", "各", "给", "跟", "和", "何", "还", "即", "几", "既", "看", "据", "距", "靠", "啦", "了", "另", "么", "每", "们", "嘛", "拿", "哪", "那", "您", "凭", "且", "却", "让", "仍", "啥", "如", "若", "使", "谁", "虽", "随", "同", "所", "她", "哇", "嗡", "往", "哪", "些", "向", "沿", "哟", "用", "于", "咱", "则", "怎", "曾", "至", "致", "着", "诸", "自"])
+    const documents = [
+      {
+        id: 1,
+        title: '二次元的报表',
+        text: '这是一个测试用的数据报表',
+        category: '测试'
+      },
+      {
+        id: 2,
+        title: '数据库是非常复杂的',
+        text: '让我试一下这个数据库',
+        category: '测试'
+      }
+    ]
+    var miniSearch 
+    main().then(() => {
+      miniSearch = new MiniSearch({
+        tokenize: (string) => {
+          // console.log(string.split(' '))
+          // console.log(cut(string))
+          return JSON.parse(cut(string))
+        },
+        fields: ['title', 'text'], // fields to index for full-text search
+        storeFields: ['title', 'category'], // fields to return with search results
+        // processTerm: (term, _fieldName) =>
+        //   stopWords.has(term) ? null : term,
+      })
+      miniSearch.addAll(documents)
+      let resu = miniSearch.search('我的报表', { fields: ['title'] })
+      console.log(resu)
+      $("#showSearch").text(JSON.stringify(resu))
+      
+    })
+
+    $('#WillSplit').change((e) => {
+      console.log($('#WillSplit').val())
+      let res = cut($('#WillSplit').val())
+      console.log(JSON.parse(res))
+      $("#showSplit").text(res)
+    }
+    )
+    $('#WillSplit2').change((e) => {
+      console.log($('#WillSplit2').val())
+      let res = cut_for_tag($('#WillSplit2').val())
+      console.log(JSON.parse(res))
+      $("#showSplit2").text(res)
+    }
+    )
+    var seq = 3
+    $("#AddDoc").click(function(){
+      miniSearch.add({
+        id: seq++,
+        title: $('#ctitle').val(),
+        text: $('#ctext').val(),
+        category: $('#ccategory').val()
+      })
+      
+    });
+    $("#SearchButton").click(function(){
+      let resq = miniSearch.search($('#cword').val(), { fields: ['title','text'] })
+      $("#showSearch").text(JSON.stringify(resq))
+
+    });
+
+
+  </script>
+</body>
+
+</html>
